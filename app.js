@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transmissionStatus.textContent = 'BROADCASTING_DATA...';
             
             const payload = await getPayload(currentPersonaJson);
+            console.log(`[Audio] Broadcasting payload: ${payload}`);
             
             const waveform = ggwave.encode(
                 instance,
