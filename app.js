@@ -178,16 +178,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return new type(buffer);
     }
 
-    playAudioBtn.onclick = () => {
+    async function getPayload(json) {
+        const minified = JSON.stringify(JSON.parse(json));
+        try {
+            if (window.CompressionStream) {
+                const stream = new Blob([minified]).stream().pipeThrough(new CompressionStream('gzip'));
+                const response = new Response(stream);
+                const buffer = await response.arrayBuffer();
+                const uint8 = new Uint8Array(buffer);
+                let binary = '';
+                for (let i = 0; i < uint8.byteLength; i++) {
+                    binary += String.fromCharCode(uint8[i]);
+                }
+                const compressed = btoa(binary);
+                // Use compressed if it's shorter (including opcode overhead)
+                if (compressed.length + 3 < minified.length + 2) {
+                    console.log(`Using compressed payload: ${compressed.length + 3} bytes vs ${minified.length + 2}`);
+                    return `P:Z${compressed}`;
+                }
+            }
+        } catch (e) {
+            console.warn("Compression failed, falling back to minified JSON:", e);
+        }
+        return `P:${minified}`;
+    }
+
+    playAudioBtn.onclick = async () => {
         initAudio();
         if (!ggwave || !context || !currentPersonaJson) return;
 
         try {
             transmissionStatus.textContent = 'BROADCASTING_DATA...';
             
-            // Minify JSON as much as possible for audio transmission
-            const minifiedJson = JSON.stringify(JSON.parse(currentPersonaJson));
-            const payload = `P:${minifiedJson}`;
+            const payload = await getPayload(currentPersonaJson);
             
             const waveform = ggwave.encode(
                 instance,
