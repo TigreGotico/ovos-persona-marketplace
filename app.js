@@ -184,8 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             transmissionStatus.textContent = 'BROADCASTING_DATA...';
-            // Prepend PIP: prefix as expected by the ggwave skill
-            const payload = `PIP: ${currentPersonaJson}`;
+            
+            // Minify JSON as much as possible for audio transmission
+            const minifiedJson = JSON.stringify(JSON.parse(currentPersonaJson));
+            const payload = `P:${minifiedJson}`;
             
             const waveform = ggwave.encode(
                 instance,

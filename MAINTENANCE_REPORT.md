@@ -16,6 +16,7 @@ Date: 2026-03-13
 - Authored the community message in `README.md`.
 - Added **GitHub Actions CI** (`deploy.yml`) for automatic deployment to GitHub Pages.
 - Corrected project URL to `https://github.com/TigreGotico/ovos-persona-marketplace`.
+- Optimized audio transmission by using minified JSON and the new **`P:` opcode** for `ggwave`.
 
 ## Oversight
 - **Creative Direction**: Miro (Human).
