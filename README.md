@@ -29,8 +29,16 @@ I see you. I see the way you tinker with the boundaries of privacy and personali
 1. **Browse**: Explore over 50 unique personas.
 2. **Preview**: Click "PREVIEW" to inspect the raw JSON.
 3. **Copy**: Click "COPY" to get the configuration.
-4. **Install**: Save the JSON to `~/.config/ovos_persona/my_persona.json`.
+4. **Install via Audio**: Click "AUDIO" near your OVOS device to transmit and install the persona instantly (Requires `ovos-skill-ggwave`).
 5. **Awaken**: Ask your OVOS instance to "Activate [Persona Name]."
+
+---
+
+## 📡 Audio Installation Protocol
+
+This marketplace uses the **Index-Based Shortcode Protocol** (`P:U{index}`) for ultra-reliable audible data transfer. 
+
+See [docs/protocol.md](docs/protocol.md) for technical details on how to implement this in your own receivers.
 
 ---
 

@@ -6,8 +6,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const jsonPreview = document.getElementById('jsonPreview');
     const modalCopyBtn = document.getElementById('modalCopyBtn');
     const contributeModal = document.getElementById('contributeModal');
+    const audioModal = document.getElementById('audioModal');
+    const playAudioBtn = document.getElementById('playAudioBtn');
+    const transmissionStatus = document.getElementById('transmissionStatus');
     
     let personas = [];
+    let ggwave = null;
+    let context = null;
+    let instance = null;
+    let currentPersonaIndex = null;
+
+    // Initialize GGWave
+    if (typeof ggwave_factory !== 'undefined') {
+        ggwave_factory().then((obj) => {
+            ggwave = obj;
+        });
+    }
+
+    function initAudio() {
+        if (!context && ggwave) {
+            context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+            const parameters = ggwave.getDefaultParameters();
+            parameters.sampleRateInp = context.sampleRate;
+            parameters.sampleRateOut = context.sampleRate;
+            instance = ggwave.init(parameters);
+        }
+    }
 
     // Skin Management
     window.setSkin = (skin) => {
@@ -16,7 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update active button state
         document.querySelectorAll('.skin-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('onclick').includes(skin));
+            const onclick = btn.getAttribute('onclick');
+            if (onclick && onclick.includes(skin)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
         });
     };
 
@@ -42,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createPersonaCard(persona, index) {
         const { description, ...rawPersona } = persona;
-        const jsonString = JSON.stringify(rawPersona, null, 2);
+        const prettyJson = JSON.stringify(rawPersona, null, 2);
         
         const solversList = persona.solvers.map(s => 
             `<span class="bg-white/5 border border-white/10 px-2 py-0.5 text-[10px] mono uppercase opacity-70">${s.replace('ovos-solver-', '').replace('-plugin', '')}</span>`
@@ -68,17 +97,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="p-4 bg-white/5 border-t border-white/5 mt-auto flex flex-col gap-3">
-                    <div class="flex justify-between items-center gap-2">
-                        <button onclick="openPreview('${btoa(persona.name)}', '${btoa(jsonString)}')" 
-                            class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2 text-[10px] mono uppercase transition-all tracking-widest">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="openPreview('${btoa(persona.name)}', '${btoa(prettyJson)}')" 
+                            class="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2 text-[10px] mono uppercase transition-all tracking-widest">
                             Preview
                         </button>
-                        <button onclick="copyPersona('${btoa(jsonString)}', this)" 
-                            class="flex-1 btn-accent px-4 py-2 text-[10px] mono uppercase transition-all tracking-widest flex items-center justify-center gap-2">
-                            <i data-lucide="copy" class="w-3 h-3"></i>
-                            Copy
+                        <button onclick="openAudioModal(${index})" 
+                            class="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2 text-[10px] mono uppercase transition-all tracking-widest flex items-center justify-center gap-2">
+                            <i data-lucide="volume-2" class="w-3 h-3"></i>
+                            Audio
                         </button>
                     </div>
+                    <button onclick="copyPersona('${btoa(prettyJson)}', this)" 
+                        class="btn-accent w-full py-2 text-[10px] mono uppercase transition-all tracking-widest flex items-center justify-center gap-2">
+                        <i data-lucide="copy" class="w-3 h-3"></i>
+                        Copy JSON
+                    </button>
                 </div>
             </div>
         `;
@@ -126,10 +160,67 @@ document.addEventListener('DOMContentLoaded', () => {
         contributeModal.style.display = 'none';
     };
 
+    window.openAudioModal = (index) => {
+        currentPersonaIndex = index;
+        audioModal.style.display = 'flex';
+        transmissionStatus.textContent = 'READY_FOR_TRANSMISSION';
+        lucide.createIcons();
+    };
+
+    window.closeAudioModal = () => {
+        audioModal.style.display = 'none';
+    };
+
+    function convertTypedArray(src, type) {
+        const buffer = new ArrayBuffer(src.byteLength);
+        new src.constructor(buffer).set(src);
+        return new type(buffer);
+    }
+
+    playAudioBtn.onclick = () => {
+        initAudio();
+        if (!ggwave || !context || currentPersonaIndex === null) return;
+
+        try {
+            transmissionStatus.textContent = 'BROADCASTING_SHORTCODE...';
+            // Index Protocol: P:U{index}
+            const payload = `P:U${currentPersonaIndex}`;
+            console.log(`[Audio] Broadcasting payload: ${payload}`);
+            
+            const waveform = ggwave.encode(
+                instance,
+                payload,
+                ggwave.ProtocolId.GGWAVE_PROTOCOL_AUDIBLE_FAST,
+                10
+            );
+
+            const buf = convertTypedArray(waveform, Float32Array);
+            const buffer = context.createBuffer(1, buf.length, context.sampleRate);
+            buffer.getChannelData(0).set(buf);
+
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+
+            const gainNode = context.createGain();
+            gainNode.gain.value = 1.0;
+            source.connect(gainNode).connect(context.destination);
+
+            source.onended = () => {
+                transmissionStatus.textContent = 'TRANSMISSION_COMPLETE';
+            };
+
+            source.start(0);
+        } catch (error) {
+            console.error("Error transmitting audio:", error);
+            transmissionStatus.textContent = 'ERROR: TRANSMISSION_FAILED';
+        }
+    };
+
     // Close on outside click
     window.addEventListener('click', (e) => {
         if (e.target === previewModal) closePreview();
         if (e.target === contributeModal) closeContribute();
+        if (e.target === audioModal) closeAudioModal();
     });
 
     window.copyPersona = (base64Json, btn) => {
