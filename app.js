@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let ggwave = null;
     let context = null;
     let instance = null;
-    let currentPersonaJson = null;
+    let currentPersonaIndex = null;
 
     // Initialize GGWave
     if (typeof ggwave_factory !== 'undefined') {
@@ -71,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createPersonaCard(persona, index) {
         const { description, ...rawPersona } = persona;
-        const jsonString = JSON.stringify(rawPersona); // Compact for audio
         const prettyJson = JSON.stringify(rawPersona, null, 2);
         
         const solversList = persona.solvers.map(s => 
@@ -103,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             class="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2 text-[10px] mono uppercase transition-all tracking-widest">
                             Preview
                         </button>
-                        <button onclick="openAudioModal('${btoa(jsonString)}')" 
+                        <button onclick="openAudioModal(${index})" 
                             class="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2 text-[10px] mono uppercase transition-all tracking-widest flex items-center justify-center gap-2">
                             <i data-lucide="volume-2" class="w-3 h-3"></i>
                             Audio
@@ -161,8 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
         contributeModal.style.display = 'none';
     };
 
-    window.openAudioModal = (jsonBase64) => {
-        currentPersonaJson = atob(jsonBase64);
+    window.openAudioModal = (index) => {
+        currentPersonaIndex = index;
         audioModal.style.display = 'flex';
         transmissionStatus.textContent = 'READY_FOR_TRANSMISSION';
         lucide.createIcons();
@@ -178,39 +177,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return new type(buffer);
     }
 
-    async function getPayload(json) {
-        const minified = JSON.stringify(JSON.parse(json));
-        try {
-            if (window.CompressionStream) {
-                const stream = new Blob([minified]).stream().pipeThrough(new CompressionStream('gzip'));
-                const response = new Response(stream);
-                const buffer = await response.arrayBuffer();
-                const uint8 = new Uint8Array(buffer);
-                let binary = '';
-                for (let i = 0; i < uint8.byteLength; i++) {
-                    binary += String.fromCharCode(uint8[i]);
-                }
-                const compressed = btoa(binary);
-                // Use compressed if it's shorter (including opcode overhead)
-                if (compressed.length + 3 < minified.length + 2) {
-                    console.log(`Using compressed payload: ${compressed.length + 3} bytes vs ${minified.length + 2}`);
-                    return `P:Z${compressed}`;
-                }
-            }
-        } catch (e) {
-            console.warn("Compression failed, falling back to minified JSON:", e);
-        }
-        return `P:${minified}`;
-    }
-
-    playAudioBtn.onclick = async () => {
+    playAudioBtn.onclick = () => {
         initAudio();
-        if (!ggwave || !context || !currentPersonaJson) return;
+        if (!ggwave || !context || currentPersonaIndex === null) return;
 
         try {
-            transmissionStatus.textContent = 'BROADCASTING_DATA...';
-            
-            const payload = await getPayload(currentPersonaJson);
+            transmissionStatus.textContent = 'BROADCASTING_SHORTCODE...';
+            // Index Protocol: P:U{index}
+            const payload = `P:U${currentPersonaIndex}`;
             console.log(`[Audio] Broadcasting payload: ${payload}`);
             
             const waveform = ggwave.encode(
