@@ -243,6 +243,36 @@
         </div>
     </div>
 
+    <!-- Audio Install Modal -->
+    <div id="audioModal" class="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" style="display: none; z-index: 10000;">
+        <div class="modal-content w-full max-w-xl flex flex-col">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <h3 class="syncopate text-lg font-bold tracking-tighter text-accent">AUDIO_INSTALL_PROTOCOL</h3>
+                <button onclick="closeAudioModal()" class="text-gray-500 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-8 text-center space-y-6">
+                <div class="flex justify-center">
+                    <div class="w-24 h-24 rounded-full border-2 border-accent/20 flex items-center justify-center animate-pulse">
+                        <i data-lucide="volume-2" class="w-10 h-10 text-accent"></i>
+                    </div>
+                </div>
+                <p class="mono text-xs uppercase tracking-widest leading-relaxed opacity-70">
+                    Ensure your OVOS device is nearby and listening.<br>Set volume to maximum for optimal data transfer.
+                </p>
+                <div id="transmissionStatus" class="mono text-[10px] text-accent/40 uppercase tracking-[0.2em] h-4">
+                    READY_FOR_TRANSMISSION
+                </div>
+            </div>
+            <div class="p-6 border-t border-white/5 flex justify-center gap-4 bg-white/5">
+                <button id="playAudioBtn" class="btn-accent px-12 py-4 mono text-xs flex items-center gap-3">
+                    <i data-lucide="play" class="w-4 h-4"></i> START_BROADCAST
+                </button>
+            </div>
+        </div>
+    </div>
+
     <footer class="mt-40 pb-24 text-center flex flex-col items-center gap-12">
         <div class="my-16">
             <div class="mono text-[10px] uppercase tracking-[0.3em] px-8 py-3 border border-accent/20 text-accent/40 animate-pulse inline-block">
@@ -264,6 +294,7 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/ggwave@0.4.0/ggwave.min.js"></script>
     <script src="app.js"></script>
     <script>
         lucide.createIcons();
