@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OVOS Personas Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&family=Syncopate:wght@400;700&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style id="skinStyles">
+        :root {
+            --bg: #0a0a0a;
+            --accent: #FF3B3B;
+            --accent-dim: #8B0000;
+            --text: #eee;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 0, 0, 0.1);
+            --card-radius: 0px;
+            --font-main: 'Outfit', sans-serif;
+            --font-display: 'Syncopate', sans-serif;
+            --font-mono: 'Geist Mono', monospace;
+        }
+
+        /* Skin: Cyberpunk */
+        [data-skin="cyberpunk"] {
+            --bg: #050505;
+            --accent: #00E5FF;
+            --accent-dim: #FFB300;
+            --text: #fff;
+            --card-bg: rgba(0, 229, 255, 0.05);
+            --card-border: rgba(0, 229, 255, 0.2);
+            --card-radius: 12px;
+        }
+
+        /* Skin: Monochrome */
+        [data-skin="monochrome"] {
+            --bg: #000;
+            --accent: #fff;
+            --accent-dim: #444;
+            --text: #fff;
+            --card-bg: transparent;
+            --card-border: #fff;
+            --card-radius: 0px;
+        }
+
+        /* Skin: Ghost */
+        [data-skin="ghost"] {
+            --bg: #0f172a;
+            --accent: #a855f7;
+            --accent-dim: #6b21a8;
+            --text: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --card-radius: 24px;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            transition: all 0.5s ease;
+            min-height: 100vh;
+        }
+
+        .syncopate { font-family: var(--font-display); }
+        .mono { font-family: var(--font-mono); }
+
+        .glow-text { text-shadow: 0 0 15px var(--accent); }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--card-radius);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 10px 40px -10px var(--accent);
+        }
+
+        .chip-header {
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.04;
+            z-index: 9999;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent);
+            border-color: var(--accent) !important;
+        }
+
+        .btn-accent {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--accent);
+        }
+
+        .btn-accent:hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        #previewModal {
+            display: none;
+            z-index: 10000;
+        }
+
+        .modal-content {
+            background: var(--bg);
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border-radius: var(--card-radius);
+        }
+
+        .skin-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .skin-btn.active {
+            border-color: var(--text);
+            transform: scale(1.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="noise"></div>
+    
+    <div class="fixed top-8 right-8 flex gap-4 z-[1000]">
+        <button onclick="setSkin('redline')" class="skin-btn bg-[#FF3B3B] active" title="Redline"></button>
+        <button onclick="setSkin('cyberpunk')" class="skin-btn bg-[#00E5FF]" title="Cyberpunk"></button>
+        <button onclick="setSkin('monochrome')" class="skin-btn bg-[#fff]" title="Monochrome"></button>
+        <button onclick="setSkin('ghost')" class="skin-btn bg-[#a855f7]" title="Ghost"></button>
+    </div>
+
+    <header class="max-w-7xl mx-auto mb-12 text-center">
+        <h1 class="syncopate text-4xl md:text-6xl font-bold mb-2 tracking-tighter glow-text">
+            OVOS <span class="opacity-50">PERSONAS</span>
+        </h1>
+
+        <div class="mt-8 flex justify-center">
+            <button onclick="openContribute()" class="btn-accent px-8 py-3 rounded-none text-[10px] mono uppercase tracking-[0.2em] flex items-center gap-3 hover:scale-105 transition-all shadow-lg">
+                <i data-lucide="plus-square" class="w-4 h-4"></i> Submit_Identity
+            </button>
+        </div>
+
+        <div class="relative max-w-2xl mx-auto mt-12">
+            <input type="text" id="searchInput" placeholder="SEARCH IDENTITIES..." 
+                class="w-full bg-black/60 border border-white/5 px-8 py-4 text-accent mono tracking-widest text-sm focus:bg-black/80 transition-all border-l-4" style="border-left-color: var(--accent);">
+            <i data-lucide="search" class="absolute right-6 top-1/2 -translate-y-1/2 opacity-30 w-5 h-5"></i>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto">
+        <div id="personaGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Cards will be injected here -->
+        </div>
+    </main>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-3xl flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <h3 id="modalTitle" class="syncopate text-lg font-bold tracking-tighter">PREVIEW_IDENTITY</h3>
+                <button onclick="closePreview()" class="text-gray-500 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-auto flex-grow">
+                <pre id="jsonPreview" class="mono text-sm leading-relaxed whitespace-pre-wrap opacity-70"></pre>
+            </div>
+            <div class="p-4 border-t border-white/5 flex justify-end gap-4 bg-white/5">
+                <button id="modalCopyBtn" class="btn-accent px-6 py-2 mono text-xs uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="copy" class="w-4 h-4"></i> COPY_TO_BUFFER
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contribute Modal -->
+    <div id="contributeModal" class="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" style="display: none; z-index: 10000;">
+        <div class="modal-content w-full max-w-2xl flex flex-col">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <h3 class="syncopate text-lg font-bold tracking-tighter text-accent">CONTRIBUTION_PROTOCOL</h3>
+                <button onclick="closeContribute()" class="text-gray-500 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-8 space-y-8 mono text-xs uppercase tracking-widest leading-loose">
+                <div class="flex gap-4">
+                    <span class="text-accent font-bold">01</span>
+                    <p class="opacity-60">FORK_REPOSITORY // Create a local instance of this marketplace node.</p>
+                </div>
+                <div class="flex gap-4">
+                    <span class="text-accent font-bold">02</span>
+                    <p class="opacity-60">UPDATE_DATABASE // Append your identity to <code class="text-white bg-white/5 px-2 py-1">personas.jsonl</code>.</p>
+                </div>
+                <div class="flex gap-4">
+                    <span class="text-accent font-bold">03</span>
+                    <p class="opacity-60">INITIATE_HANDSHAKE // Open a Pull Request to the <code class="text-white bg-white/5 px-2 py-1">dev</code> branch.</p>
+                </div>
+                <div class="pt-8 border-t border-white/5 opacity-30 italic text-[10px]">
+                    System Note: Every contribution strengthens the persona network.
+                </div>
+            </div>
+            <div class="p-4 border-t border-white/5 flex justify-end bg-white/5">
+                <a href="https://github.com/TigreGotico/ovos-persona-marketplace" target="_blank" class="btn-accent px-8 py-3 mono text-[10px] flex items-center gap-2">
+                    <i data-lucide="github" class="w-4 h-4"></i> PROCEED_TO_GITHUB
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-40 pb-24 text-center flex flex-col items-center gap-12">
+        <div class="my-16">
+            <div class="mono text-[10px] uppercase tracking-[0.3em] px-8 py-3 border border-accent/20 text-accent/40 animate-pulse inline-block">
+                Vibe Code Warning // High Concentration of Esthetic Energy Detected
+            </div>
+        </div>
+        
+        <nav class="flex justify-center gap-8 mono text-[10px] uppercase tracking-[0.2em] opacity-30 hover:opacity-80 transition-opacity">
+            <a href="https://openvoiceos.org" target="_blank" class="hover:text-accent flex items-center gap-2">
+                <i data-lucide="external-link" class="w-3 h-3"></i> openvoiceos.org
+            </a>
+            <a href="https://tigregotico.pt" target="_blank" class="hover:text-accent flex items-center gap-2">
+                <i data-lucide="external-link" class="w-3 h-3"></i> tigregotico.pt
+            </a>
+        </nav>
+
+        <div class="text-gray-600 text-[10px] uppercase tracking-widest mono">
+            &copy; 2026 Tigre Gótico Lda
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
