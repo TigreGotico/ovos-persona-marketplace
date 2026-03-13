@@ -14,6 +14,8 @@ Date: 2026-03-13
 - Added a **JSON Preview Modal** for inspecting configurations.
 - Included search and filtering functionalities.
 - Authored the community message in `README.md`.
+- Added **GitHub Actions CI** (`deploy.yml`) for automatic deployment to GitHub Pages.
+- Corrected project URL to `https://github.com/TigreGotico/ovos-persona-marketplace`.
 
 ## Oversight
 - **Creative Direction**: Miro (Human).

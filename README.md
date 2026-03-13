@@ -49,10 +49,10 @@ The marketplace supports four distinct visual protocols (accessible via the icon
 This marketplace is powered by `personas.jsonl`. We invite you to contribute!
 
 ### Submit to GitHub
-1. **Fork** this repository.
+1. **Fork** [this repository](https://github.com/TigreGotico/ovos-persona-marketplace).
 2. Add your persona as a new line in `personas.jsonl`.
 3. **Commit** your changes (e.g., `feat: add Sherlock persona`).
-4. Open a **Pull Request** to the `dev` branch.
+4. Open a **Pull Request** to the `master` branch.
 5. Once merged, your persona will automatically appear!
 
 Example Entry:
